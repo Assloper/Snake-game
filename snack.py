@@ -6,6 +6,17 @@ import random
 SCREEN_X = 600
 SCREEN_Y = 600
 
+speed = 25
+
+BLACK = (0,0,0)
+WHITE = (255,255,255)
+
+RED = (255.0,0)
+GREEN = (0,255,0)
+BLUE = (0, 0, 255)
+
+YELLOW = (255, 255, 0)
+
 
 # 蛇类
 # 点以25为单位
@@ -20,17 +31,18 @@ class Snake(object):
     # 无论何时 都在前端增加蛇块
     def addnode(self):
         left, top = (0, 0)
+        
         if self.body:
             left, top = (self.body[0].left, self.body[0].top)
         node = pygame.Rect(left, top, 25, 25)
         if self.dirction == pygame.K_LEFT:
-            node.left -= 25
+            node.left -= speed
         elif self.dirction == pygame.K_RIGHT:
-            node.left += 25
+            node.left += speed
         elif self.dirction == pygame.K_UP:
-            node.top -= 25
+            node.top -= speed
         elif self.dirction == pygame.K_DOWN:
-            node.top += 25
+            node.top += speed
         self.body.insert(0, node)
 
     # 删除最后一个块
@@ -86,6 +98,23 @@ class Food:
             self.rect.top = random.choice(allpos)
             print(self.rect)
 
+class SuperFood:
+    def __init__(self):
+        self.rect1 = pygame.Rect(-25, 0, 25, 25)
+
+    def remove(self):
+        self.rect1.x = -25
+
+    def set(self):
+        if self.rect1.x == -25:
+            allpos = []
+            # 不靠墙太近 25 ~ SCREEN_X-25 之间
+            for pos in range(25, SCREEN_X - 25, 25):
+                allpos.append(pos)
+            self.rect1.left = random.choice(allpos)
+            self.rect1.top = random.choice(allpos)
+            print(self.rect1)
+
 
 def show_text(screen, pos, text, color, font_bold=False, font_size=50, font_italic=False):
     # 获取系统字体，并设置文字大小
@@ -104,7 +133,7 @@ def begin():
     pygame.init()
     screen_size = (SCREEN_X, SCREEN_Y)
     screen = pygame.display.set_mode(screen_size)
-    pygame.display.set_caption('贪吃蛇小游戏')
+    pygame.display.set_caption('Snake-game')
     clock = pygame.time.Clock()
     scores = 0
     isdead = False
@@ -112,6 +141,7 @@ def begin():
     # 蛇/食物
     snake = Snake()
     food = Food()
+    superfood = SuperFood()
 
     while True:
         for event in pygame.event.get():
@@ -145,9 +175,17 @@ def begin():
             food.remove()
             snake.addnode()
 
+        if superfood.rect1 == snake.body[0]:
+            global speed
+            speed *= 2
+            superfood.remove()
+            snake.addnode()
+
         # 食物投递
         food.set()
+        superfood.set()
         pygame.draw.rect(screen, (0, 0, 255), food.rect, 0)
+        pygame.draw.rect(screen, "RED", superfood.rect1, 0)
 
         # 显示分数文字
         show_text(screen, (20, 550), 'Scores: ' + str(scores), (223, 223, 223))
